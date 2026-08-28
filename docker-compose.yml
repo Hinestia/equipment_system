@@ -16,16 +16,16 @@ services:
 
       # ОБЯЗАТЕЛЬНО замените на свою длинную случайную строку перед запуском
       # в реальной эксплуатации. Сгенерировать: см. DEPLOY.md.
-      DJANGO_SECRET_KEY: "замените-меня-на-случайную-строку"
+      DJANGO_SECRET_KEY: "ADMIN-UKGG-PASS-GEN-THREE-FOND"
 
       DJANGO_DEBUG: "False"
 
       # Перечислите через запятую IP-адрес и/или имя сервера, по которому
       # сотрудники будут заходить в систему.
-      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
+      DJANGO_ALLOWED_HOSTS: "*"
 
       # Необязательно: если заданы оба значения, при первом запуске
       # автоматически создастся администратор для /admin/ с этим логином/паролем.
       # После первого запуска можно убрать (или сменить пароль через /admin/).
       DJANGO_SUPERUSER_USERNAME: "admin"
-      DJANGO_SUPERUSER_PASSWORD: "замените-меня"
+      DJANGO_SUPERUSER_PASSWORD: "87A27de00"
