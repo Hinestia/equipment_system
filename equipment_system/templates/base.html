@@ -15,6 +15,7 @@
     </style>
 </head>
 <body>
+    {% if user.is_authenticated %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'reports:dashboard' %}">Учёт оборудования АСУТП</a>
@@ -25,10 +26,21 @@
                 <a class="nav-link" href="{% url 'history:list' %}">Журнал истории</a>
                 <a class="nav-link" href="{% url 'documents:list' %}">Документы</a>
                 <a class="nav-link" href="{% url 'reports:mol_list' %}">Отчёты по МОЛ</a>
+                {% if user.is_staff %}
                 <a class="nav-link" href="/admin/">Справочники (админка)</a>
+                {% endif %}
+            </div>
+            <div class="navbar-nav ms-auto">
+                <span class="nav-link text-white-50">{{ user.username }}</span>
+                <a class="nav-link" href="{% url 'password_change' %}">Сменить пароль</a>
+                <form method="post" action="{% url 'logout' %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link nav-link" style="border:none; background:none;">Выйти</button>
+                </form>
             </div>
         </div>
     </nav>
+    {% endif %}
 
     <div class="container-fluid px-4">
         {% if messages %}

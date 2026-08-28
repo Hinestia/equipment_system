@@ -72,6 +72,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'equipment_system.middleware.LoginRequiredMiddleware',
 ]
 
 ROOT_URLCONF = 'equipment_system.urls'
@@ -168,3 +169,12 @@ MAILERS = {
 # https://docs.djangoproject.com/en/6.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Вход в систему
+# Все страницы (кроме /admin/ и страницы входа) требуют аутентификации —
+# см. equipment_system/middleware.py.
+
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = 'reports:dashboard'
+LOGOUT_REDIRECT_URL = 'login'
