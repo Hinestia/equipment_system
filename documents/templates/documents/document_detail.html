@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Документ {{ document.number }}{% endblock %}
+{% block content %}
+<a href="{% url 'documents:list' %}" class="mb-3 d-inline-block">&larr; К документам</a>
+
+<div class="card" style="max-width: 800px;">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>{{ document.document_type }} № {{ document.number }}</strong>
+        {% if document.generated_file %}
+            <a href="{{ document.generated_file.url }}" class="btn btn-success btn-sm" download>Скачать .docx</a>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <table class="table table-borderless mb-3">
+            <tr><th style="width:30%">Дата формирования</th><td>{{ document.date_created|date:"d.m.Y H:i" }}</td></tr>
+            {% if document.from_employee %}<tr><th>От сотрудника</th><td>{{ document.from_employee }}</td></tr>{% endif %}
+            {% if document.to_employee %}<tr><th>Кому передано</th><td>{{ document.to_employee }}</td></tr>{% endif %}
+            {% if document.from_location %}<tr><th>Откуда</th><td>{{ document.from_location }}</td></tr>{% endif %}
+            {% if document.to_location %}<tr><th>Куда</th><td>{{ document.to_location }}</td></tr>{% endif %}
+            {% if document.reason %}<tr><th>Причина/основание</th><td>{{ document.reason }}</td></tr>{% endif %}
+            {% if document.comment %}<tr><th>Комментарий</th><td>{{ document.comment }}</td></tr>{% endif %}
+        </table>
+
+        <h6>Оборудование в документе ({{ items.count }})</h6>
+        <table class="table table-sm table-bordered">
+            <thead><tr><th>Инв. номер</th><th>Наименование</th><th>Кол-во</th></tr></thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td><a href="{% url 'equipment:detail' item.equipment.pk %}">{{ item.equipment.inventory_number }}</a></td>
+                    <td>{{ item.equipment.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="text-muted text-center">Список пуст.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

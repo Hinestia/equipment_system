@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Главная{% endblock %}
+{% block content %}
+<h3 class="mb-3">Обзор</h3>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center card-body">
+            <div class="display-6">{{ total_equipment }}</div>
+            <div class="text-muted small">единиц оборудования в реестре</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center card-body">
+            <div class="display-6">{{ mol_count }}</div>
+            <div class="text-muted small">материально ответственных лиц</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center card-body">
+            <div class="display-6">{{ total_cost|floatformat:0 }}</div>
+            <div class="text-muted small">суммарная балансовая стоимость</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center card-body d-flex flex-column justify-content-center">
+            <a href="{% url 'equipment:list' %}" class="btn btn-primary btn-sm mb-1">Открыть реестр</a>
+            <a href="{% url 'documents:act_menu' %}" class="btn btn-outline-secondary btn-sm">Сформировать акт</a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">По статусам</div>
+            <ul class="list-group list-group-flush">
+                {% for row in by_status %}
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>{{ row.status__name|default:"Без статуса" }}</span>
+                    <strong>{{ row.count }}</strong>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-muted">Оборудования пока нет.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">По категориям</div>
+            <ul class="list-group list-group-flush">
+                {% for row in by_category %}
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>{{ row.category__name|default:"Без категории" }}</span>
+                    <strong>{{ row.count }}</strong>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-muted">Оборудования пока нет.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Последние события</span>
+        <a href="{% url 'history:list' %}" class="small">Весь журнал &rarr;</a>
+    </div>
+    <ul class="list-group list-group-flush">
+        {% for event in recent_events %}
+        <li class="list-group-item small d-flex justify-content-between">
+            <span>
+                <strong>{{ event.get_event_type_display }}</strong> —
+                <a href="{% url 'equipment:detail' event.equipment_id %}">{{ event.equipment.inventory_number }}</a>
+            </span>
+            <span class="text-muted">{{ event.event_date|date:"d.m.Y H:i" }}</span>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">Событий пока нет.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

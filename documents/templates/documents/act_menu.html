@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Сформировать акт{% endblock %}
+{% block content %}
+<a href="{% url 'documents:list' %}" class="mb-3 d-inline-block">&larr; К документам</a>
+<h4 class="mb-3">Какой акт сформировать?</h4>
+
+<div class="row g-3" style="max-width: 800px;">
+    {% for act_type in act_types %}
+    <div class="col-md-6">
+        <a href="{% url 'documents:create_act' act_type.code %}" class="card text-decoration-none h-100">
+            <div class="card-body">
+                <h6 class="card-title text-dark">{{ act_type.name }}</h6>
+                <p class="card-text text-muted small mb-0">Номер будет присвоен автоматически ({{ act_type.number_prefix }}-XXXX)</p>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+<hr class="my-4" style="max-width: 800px;">
+
+<h5>Ведомости и списки</h5>
+<div class="row g-3" style="max-width: 800px;">
+    <div class="col-md-6">
+        <a href="{% url 'documents:create_ledger' 'ledger_equipment' %}" class="card text-decoration-none h-100">
+            <div class="card-body">
+                <h6 class="card-title text-dark">Ведомость оборудования</h6>
+                <p class="card-text text-muted small mb-0">Полный список всего оборудования в реестре</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6">
+        <a href="{% url 'documents:create_ledger' 'ledger_inventory' %}" class="card text-decoration-none h-100">
+            <div class="card-body">
+                <h6 class="card-title text-dark">Инвентаризационная ведомость</h6>
+                <p class="card-text text-muted small mb-0">Тот же состав — для проведения инвентаризации</p>
+            </div>
+        </a>
+    </div>
+</div>
+<p class="text-muted small mt-3" style="max-width: 800px;">
+    Список оборудования конкретного сотрудника / кабинета / подразделения формируется
+    прямо из реестра оборудования — примените нужный фильтр на странице
+    <a href="{% url 'equipment:list' %}">реестра</a> и нажмите соответствующую кнопку.
+</p>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Изменить статус: {{ item.name }}{% endblock %}
+{% block content %}
+<a href="{% url 'equipment:detail' item.pk %}" class="mb-3 d-inline-block">&larr; К карточке</a>
+<h4 class="mb-3">Изменить статус: {{ item.name }} ({{ item.inventory_number }})</h4>
+
+<div class="alert alert-light border">
+    Текущий статус: <strong>{{ item.status|default:"—" }}</strong>
+</div>
+
+<form method="post" class="card card-body" style="max-width: 600px;">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label class="form-label">Новый статус</label>
+        <select name="status" class="form-select" required>
+            {% for s in statuses %}
+                <option value="{{ s.id }}" {% if item.status_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Комментарий</label>
+        <textarea name="comment" class="form-control" rows="2" placeholder="Например: причина неисправности..."></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+</form>
+{% endblock %}

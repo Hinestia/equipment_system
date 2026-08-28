@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Система учёта оборудования{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f5f6f8; }
+        .navbar-brand { font-weight: 600; }
+        .card { border: 1px solid #e3e5e8; }
+        table.table thead { background-color: #f0f1f3; }
+        .badge-status { font-size: 0.85em; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'reports:dashboard' %}">Учёт оборудования АСУТП</a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="{% url 'reports:dashboard' %}">Главная</a>
+                <a class="nav-link" href="{% url 'equipment:list' %}">Реестр</a>
+                <a class="nav-link" href="{% url 'equipment:create' %}">+ Добавить оборудование</a>
+                <a class="nav-link" href="{% url 'history:list' %}">Журнал истории</a>
+                <a class="nav-link" href="{% url 'documents:list' %}">Документы</a>
+                <a class="nav-link" href="{% url 'reports:mol_list' %}">Отчёты по МОЛ</a>
+                <a class="nav-link" href="/admin/">Справочники (админка)</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}{{ label }}{% endblock %}
+{% block content %}
+<a href="{% url 'documents:act_menu' %}" class="mb-3 d-inline-block">&larr; К выбору акта</a>
+<h4 class="mb-3">{{ label }}</h4>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card mb-3">
+                <div class="card-header">Выберите оборудование</div>
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width:5%"></th>
+                                <th>Инв. номер</th>
+                                <th>Наименование</th>
+                                <th>Статус</th>
+                                <th>Ответственный</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in equipment_items %}
+                            <tr>
+                                <td><input type="checkbox" name="equipment" value="{{ item.pk }}" class="form-check-input"></td>
+                                <td>{{ item.inventory_number }}</td>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.status|default:"—" }}</td>
+                                <td>{{ item.responsible_employee|default:"—" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center text-muted py-3">Оборудования в реестре пока нет.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card card-body">
+                {% if code == "act_transfer" %}
+                    <div class="mb-3">
+                        <label class="form-label">Кому передать (обязательно)</label>
+                        <select name="to_employee" class="form-select" required>
+                            <option value="">— выберите —</option>
+                            {% for e in employees %}<option value="{{ e.id }}">{{ e.full_name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Новое местонахождение (необязательно)</label>
+                        <select name="to_location" class="form-select">
+                            <option value="">— оставить без изменений —</option>
+                            {% for l in locations %}<option value="{{ l.id }}">{{ l.name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                {% elif code == "act_move" %}
+                    <div class="mb-3">
+                        <label class="form-label">Новое местонахождение (обязательно)</label>
+                        <select name="to_location" class="form-select" required>
+                            <option value="">— выберите —</option>
+                            {% for l in locations %}<option value="{{ l.id }}">{{ l.name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                {% elif code == "act_return" %}
+                    <div class="mb-3">
+                        <label class="form-label">Местонахождение после возврата (например, склад)</label>
+                        <select name="to_location" class="form-select">
+                            <option value="">— не указано —</option>
+                            {% for l in locations %}<option value="{{ l.id }}">{{ l.name }}</option>{% endfor %}
+                        </select>
+                        <div class="form-text">Ответственный сотрудник будет снят с оборудования.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Состояние при возврате</label>
+                        <input type="text" name="reason" class="form-control" placeholder="Например: исправно / требует ремонта">
+                    </div>
+                {% elif code == "act_write_off" %}
+                    <div class="mb-3">
+                        <label class="form-label">Причина списания (обязательно)</label>
+                        <textarea name="reason" class="form-control" rows="2" required></textarea>
+                    </div>
+                    <div class="alert alert-warning small">
+                        Статус выбранного оборудования будет изменён на «Списано».
+                    </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label">Комментарий</label>
+                    <textarea name="comment" class="form-control" rows="2"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Сформировать документ</button>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}

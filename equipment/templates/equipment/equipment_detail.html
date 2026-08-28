@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}{{ item.name }} — карточка{% endblock %}
+{% block content %}
+<a href="{% url 'equipment:list' %}" class="mb-3 d-inline-block">&larr; К реестру</a>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>Карточка единицы имущества</strong>
+                <div>
+                    <a href="{% url 'documents:create_card' item.pk %}" class="btn btn-sm btn-outline-success">Скачать карточку (Word)</a>
+                    <a href="{% url 'equipment:status_change' item.pk %}" class="btn btn-sm btn-outline-secondary">Изменить статус</a>
+                    <a href="{% url 'equipment:transfer' item.pk %}" class="btn btn-sm btn-outline-primary">Передать / переместить</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr><th style="width:40%">Инвентарный номер</th><td>{{ item.inventory_number }}</td></tr>
+                    <tr><th>Серийный номер</th><td>{{ item.serial_number|default:"—" }}</td></tr>
+                    <tr><th>Наименование</th><td>{{ item.name }}</td></tr>
+                    <tr><th>Модель</th><td>{{ item.model|default:"—" }}</td></tr>
+                    <tr><th>Категория</th><td>{{ item.category|default:"—" }}</td></tr>
+                    <tr><th>Технические характеристики</th><td>{{ item.specifications|linebreaksbr|default:"—" }}</td></tr>
+                    <tr><th>Дата поступления</th><td>{{ item.purchase_date|default:"—" }}</td></tr>
+                    <tr><th>Балансовая стоимость</th><td>{{ item.purchase_cost|default:"—" }}</td></tr>
+                    <tr><th>Статус</th><td>{{ item.status|default:"—" }}</td></tr>
+                    <tr><th>Текущее местонахождение</th><td>{{ item.current_location|default:"—" }}</td></tr>
+                    <tr><th>Ответственное лицо</th><td>{{ item.responsible_employee|default:"—" }}</td></tr>
+                    <tr><th>Примечания</th><td>{{ item.notes|linebreaksbr|default:"—" }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header"><strong>История эксплуатации</strong></div>
+            <ul class="list-group list-group-flush">
+                {% for event in events %}
+                <li class="list-group-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>{{ event.get_event_type_display }}</strong>
+                        <span class="text-muted small">{{ event.event_date|date:"d.m.Y H:i" }}</span>
+                    </div>
+                    {% if event.from_employee or event.to_employee %}
+                        <div class="small">
+                            Сотрудник: {{ event.from_employee|default:"—" }} → {{ event.to_employee|default:"—" }}
+                        </div>
+                    {% endif %}
+                    {% if event.from_location or event.to_location %}
+                        <div class="small">
+                            Местонахождение: {{ event.from_location|default:"—" }} → {{ event.to_location|default:"—" }}
+                        </div>
+                    {% endif %}
+                    {% if event.comment %}
+                        <div class="small text-muted">{{ event.comment }}</div>
+                    {% endif %}
+                </li>
+                {% empty %}
+                <li class="list-group-item text-muted">История пуста.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

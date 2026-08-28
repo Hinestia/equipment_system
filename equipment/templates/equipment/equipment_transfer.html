@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Передать: {{ item.name }}{% endblock %}
+{% block content %}
+<a href="{% url 'equipment:detail' item.pk %}" class="mb-3 d-inline-block">&larr; К карточке</a>
+<h4 class="mb-3">Передать / переместить: {{ item.name }} ({{ item.inventory_number }})</h4>
+
+<div class="alert alert-light border">
+    Сейчас: <strong>{{ item.responsible_employee|default:"—" }}</strong>,
+    местонахождение — <strong>{{ item.current_location|default:"—" }}</strong>
+</div>
+
+<form method="post" class="card card-body" style="max-width: 600px;">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label class="form-label">Новое ответственное лицо</label>
+        <select name="to_employee" class="form-select">
+            <option value="">— оставить без изменений —</option>
+            {% for e in employees %}
+                <option value="{{ e.id }}" {% if item.responsible_employee_id == e.id %}selected{% endif %}>{{ e.full_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Новое местонахождение</label>
+        <select name="to_location" class="form-select">
+            <option value="">— оставить без изменений —</option>
+            {% for l in locations %}
+                <option value="{{ l.id }}" {% if item.current_location_id == l.id %}selected{% endif %}>{{ l.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Комментарий</label>
+        <textarea name="comment" class="form-control" rows="2" placeholder="Например: основание, номер служебной записки..."></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Зафиксировать</button>
+</form>
+{% endblock %}
