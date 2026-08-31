@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Журнал истории{% endblock %}
+{% block page_eyebrow %}
+<span class="display-title" style="font-size:26px;">Журнал истории перемещений <span class="mono" style="font-size:12px;color:var(--text-muted);">{{ total_count }}</span></span>
+{% endblock %}
 {% block content %}
-<h3 class="mb-3">Журнал истории перемещений <span class="text-muted fs-6">({{ total_count }})</span></h3>
 
 <form method="get" class="row g-2 mb-3 align-items-end">
     <div class="col-md-2">
@@ -49,7 +51,7 @@
         <input type="date" name="date_to" value="{{ date_to }}" class="form-control">
     </div>
     <div class="col-12">
-        <button type="submit" class="btn btn-primary">Найти</button>
+        <button type="submit" class="btn btn-primary"><i class="ph ph-magnifying-glass"></i> Найти</button>
         <a href="{% url 'history:list' %}" class="btn btn-outline-secondary">Сбросить</a>
     </div>
 </form>
@@ -70,12 +72,12 @@
             <tbody>
                 {% for event in events %}
                 <tr>
-                    <td class="text-nowrap">{{ event.event_date|date:"d.m.Y H:i" }}</td>
-                    <td><a href="{% url 'equipment:detail' event.equipment_id %}">{{ event.equipment.inventory_number }} — {{ event.equipment.name }}</a></td>
-                    <td><span class="badge bg-secondary">{{ event.get_event_type_display }}</span></td>
+                    <td class="text-nowrap mono" style="font-size:10px;">{{ event.event_date|date:"d.m.Y H:i" }}</td>
+                    <td><a href="{% url 'equipment:detail' event.equipment_id %}"><span class="mono">{{ event.equipment.inventory_number }}</span> — {{ event.equipment.name }}</a></td>
+                    <td><span class="status-pill status-pill--neutral">{{ event.get_event_type_display }}</span></td>
                     <td>{{ event.from_employee|default:"—" }} → {{ event.to_employee|default:"—" }}</td>
                     <td>{{ event.from_location|default:"—" }} → {{ event.to_location|default:"—" }}</td>
-                    <td class="text-muted small">{{ event.comment|default:"—" }}</td>
+                    <td class="text-muted" style="font-size:10px;">{{ event.comment|default:"—" }}</td>
                 </tr>
                 {% empty %}
                 <tr>

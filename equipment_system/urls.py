@@ -42,6 +42,7 @@ urlpatterns = [
     path('history/', include('history.urls')),
     path('documents/', include('documents.urls')),
     path('reports/', include('reports.urls')),
+    path('workstations/', include('workstations.urls')),
     path('', RedirectView.as_view(pattern_name='reports:dashboard', permanent=False)),
 ]
 

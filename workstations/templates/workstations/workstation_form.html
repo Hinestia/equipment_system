@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Новая сборка{% endblock %}
+{% block page_eyebrow %}
+<div style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+    <a href="{% url 'workstations:list' %}"><i class="ph ph-arrow-left"></i> К сборкам</a>
+</div>
+<div class="display-title mt-1" style="font-size:24px;">Новая сборка</div>
+{% endblock %}
+{% block content %}
+
+<form method="post" class="card card-body" style="max-width: 600px;">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label class="form-label">Название *</label>
+        <input type="text" name="name" class="form-control" placeholder="Например: АРМ инженера Иванова" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Местонахождение</label>
+        <select name="location" class="form-select">
+            <option value="">— не указано —</option>
+            {% for l in locations %}<option value="{{ l.id }}">{{ l.name }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Ответственное лицо</label>
+        <select name="responsible_employee" class="form-select">
+            <option value="">— не указано —</option>
+            {% for e in employees %}<option value="{{ e.id }}">{{ e.full_name }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Примечания</label>
+        <textarea name="notes" class="form-control" rows="2"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary"><i class="ph ph-plus"></i> Создать</button>
+</form>
+{% endblock %}

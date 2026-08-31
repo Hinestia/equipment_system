@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Добавить оборудование{% endblock %}
+{% block page_eyebrow %}
+<div style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+    <a href="{% url 'equipment:list' %}"><i class="ph ph-arrow-left"></i> К реестру</a>
+</div>
+<div class="display-title mt-1" style="font-size:24px;">Добавить оборудование в реестр</div>
+{% endblock %}
 {% block content %}
-<a href="{% url 'equipment:list' %}" class="mb-3 d-inline-block">&larr; К реестру</a>
-<h4 class="mb-3">Добавить оборудование в реестр</h4>
 
 <form method="post" class="card card-body" style="max-width: 700px;">
     {% csrf_token %}
@@ -69,7 +73,7 @@
         </div>
     </div>
     <div class="mt-3">
-        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <button type="submit" class="btn btn-primary"><i class="ph ph-check"></i> Сохранить</button>
     </div>
 </form>
 <p class="text-muted small mt-2">

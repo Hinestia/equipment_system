@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}{{ workstation.name }}{% endblock %}
+{% block page_eyebrow %}
+<div style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+    <a href="{% url 'workstations:list' %}"><i class="ph ph-arrow-left"></i> К сборкам</a>
+</div>
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mt-1">
+    <div>
+        <span class="display-title" style="font-size:24px;"><i class="ph ph-tree-structure" style="color:var(--accent);font-size:20px;"></i> {{ workstation.name }}</span>
+        <p class="text-muted mb-0" style="font-size:10.5px;margin-top:2px;">
+            {{ workstation.location|default:"Местонахождение не указано" }} ·
+            {{ workstation.responsible_employee|default:"Ответственный не указан" }}
+        </p>
+        {% if workstation.notes %}<p class="text-muted mb-0" style="font-size:10px;">{{ workstation.notes }}</p>{% endif %}
+    </div>
+    <a href="{% url 'workstations:delete' workstation.pk %}" class="btn btn-outline-danger btn-sm"><i class="ph ph-trash"></i> Расформировать</a>
+</div>
+{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-7">
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Состав сборки ({{ components.count }})</span>
+                <span class="text-muted mono" style="font-size:10px;">Стоимость: {{ total_cost|floatformat:2 }}</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Инв. номер</th>
+                            <th>Наименование</th>
+                            <th>Категория</th>
+                            <th>Статус</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in components %}
+                        <tr>
+                            <td class="mono"><a href="{% url 'equipment:detail' item.pk %}">{{ item.inventory_number }}</a></td>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.category|default:"—" }}</td>
+                            <td>{{ item.status|default:"—" }}</td>
+                            <td>
+                                <a href="{% url 'workstations:remove_component' workstation.pk item.pk %}"
+                                   class="btn btn-sm btn-outline-secondary"
+                                   onclick="return confirm('Убрать {{ item.inventory_number }} из сборки?');"><i class="ph ph-x"></i> Убрать</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted py-4">В сборке пока нет оборудования.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card card-body">
+            <span style="color:var(--text-primary);font-size:12px;" class="mb-2 d-block"><i class="ph ph-plus-circle"></i> Добавить оборудование в сборку</span>
+            {% if available_equipment %}
+            <form method="post" action="{% url 'workstations:add_component' workstation.pk %}">
+                {% csrf_token %}
+                <div style="max-height: 300px; overflow-y: auto;" class="mb-2 border rounded p-2">
+                    {% for item in available_equipment %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="equipment" value="{{ item.pk }}" id="ws-eq-{{ item.pk }}">
+                        <label class="form-check-label" for="ws-eq-{{ item.pk }}" style="font-size:10.5px;">
+                            {{ item.inventory_number }} — {{ item.name }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm w-100"><i class="ph ph-plus"></i> Добавить выбранное</button>
+            </form>
+            <p class="text-muted mt-2 mb-0" style="font-size:10px;">
+                Показано только оборудование, ещё не входящее ни в одну сборку.
+            </p>
+            {% else %}
+            <p class="text-muted mb-0" style="font-size:10.5px;">
+                Всё оборудование в реестре уже распределено по сборкам, либо
+                реестр пуст. <a href="{% url 'equipment:create' %}">Добавить новое оборудование</a>.
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

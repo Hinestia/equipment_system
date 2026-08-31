@@ -1,33 +1,37 @@
 {% extends "base.html" %}
 {% block title %}Документ {{ document.number }}{% endblock %}
+{% block page_eyebrow %}
+<div style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+    <a href="{% url 'documents:list' %}"><i class="ph ph-arrow-left"></i> К документам</a>
+</div>
+<div class="display-title mt-1" style="font-size:24px;">{{ document.document_type }} <span class="mono" style="font-size:18px;color:var(--text-muted);">№ {{ document.number }}</span></div>
+{% endblock %}
 {% block content %}
-<a href="{% url 'documents:list' %}" class="mb-3 d-inline-block">&larr; К документам</a>
-
 <div class="card" style="max-width: 800px;">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <strong>{{ document.document_type }} № {{ document.number }}</strong>
+        <span>Реквизиты документа</span>
         {% if document.generated_file %}
-            <a href="{{ document.generated_file.url }}" class="btn btn-success btn-sm" download>Скачать .docx</a>
+            <a href="{{ document.generated_file.url }}" class="btn btn-outline-success btn-sm" download><i class="ph ph-download-simple"></i> Скачать .docx</a>
         {% endif %}
     </div>
     <div class="card-body">
-        <table class="table table-borderless mb-3">
-            <tr><th style="width:30%">Дата формирования</th><td>{{ document.date_created|date:"d.m.Y H:i" }}</td></tr>
-            {% if document.from_employee %}<tr><th>От сотрудника</th><td>{{ document.from_employee }}</td></tr>{% endif %}
-            {% if document.to_employee %}<tr><th>Кому передано</th><td>{{ document.to_employee }}</td></tr>{% endif %}
-            {% if document.from_location %}<tr><th>Откуда</th><td>{{ document.from_location }}</td></tr>{% endif %}
-            {% if document.to_location %}<tr><th>Куда</th><td>{{ document.to_location }}</td></tr>{% endif %}
-            {% if document.reason %}<tr><th>Причина/основание</th><td>{{ document.reason }}</td></tr>{% endif %}
-            {% if document.comment %}<tr><th>Комментарий</th><td>{{ document.comment }}</td></tr>{% endif %}
-        </table>
+        <div class="row" style="row-gap:8px;font-size:10.5px;">
+            <div class="col-4 text-muted">Дата формирования</div><div class="col-8 mono">{{ document.date_created|date:"d.m.Y H:i" }}</div>
+            {% if document.from_employee %}<div class="col-4 text-muted">От сотрудника</div><div class="col-8">{{ document.from_employee }}</div>{% endif %}
+            {% if document.to_employee %}<div class="col-4 text-muted">Кому передано</div><div class="col-8">{{ document.to_employee }}</div>{% endif %}
+            {% if document.from_location %}<div class="col-4 text-muted">Откуда</div><div class="col-8">{{ document.from_location }}</div>{% endif %}
+            {% if document.to_location %}<div class="col-4 text-muted">Куда</div><div class="col-8">{{ document.to_location }}</div>{% endif %}
+            {% if document.reason %}<div class="col-4 text-muted">Причина/основание</div><div class="col-8">{{ document.reason }}</div>{% endif %}
+            {% if document.comment %}<div class="col-4 text-muted">Комментарий</div><div class="col-8">{{ document.comment }}</div>{% endif %}
+        </div>
 
-        <h6>Оборудование в документе ({{ items.count }})</h6>
+        <div class="mt-4 mb-2" style="color:var(--text-primary);font-size:12px;">Оборудование в документе ({{ items.count }})</div>
         <table class="table table-sm table-bordered">
             <thead><tr><th>Инв. номер</th><th>Наименование</th><th>Кол-во</th></tr></thead>
             <tbody>
                 {% for item in items %}
                 <tr>
-                    <td><a href="{% url 'equipment:detail' item.equipment.pk %}">{{ item.equipment.inventory_number }}</a></td>
+                    <td class="mono"><a href="{% url 'equipment:detail' item.equipment.pk %}">{{ item.equipment.inventory_number }}</a></td>
                     <td>{{ item.equipment.name }}</td>
                     <td>{{ item.quantity }}</td>
                 </tr>

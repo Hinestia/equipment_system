@@ -1,32 +1,33 @@
 {% extends "base.html" %}
 {% block title %}Реестр оборудования{% endblock %}
-{% block content %}
-<h3 class="mb-3">Реестр оборудования <span class="text-muted fs-6">({{ total_count }})</span>
-    <a href="{% url 'reports:export_equipment_excel' %}?{{ request.GET.urlencode }}" class="btn btn-sm btn-outline-success float-end">Экспорт в Excel</a>
-</h3>
-
-{% if selected_employee or selected_location %}
-<div class="alert alert-light border d-flex justify-content-between align-items-center">
-    <span>Сформировать печатный список для текущего фильтра:</span>
-    <span>
-        {% if selected_employee %}
-        <a href="{% url 'documents:create_list_employee' selected_employee %}" class="btn btn-sm btn-outline-primary">Список сотрудника (Word)</a>
-        {% endif %}
-        {% if selected_location %}
-        <a href="{% url 'documents:create_list_location' selected_location %}" class="btn btn-sm btn-outline-primary">Список кабинета (Word)</a>
-        {% endif %}
-    </span>
+{% block page_eyebrow %}
+<div class="d-flex align-items-baseline gap-2 flex-wrap">
+    <span class="display-title" style="font-size:26px;">Реестр оборудования</span>
+    <span class="mono" style="font-size:12px;color:var(--text-muted);">{{ total_count }}</span>
 </div>
-{% endif %}
+<div style="font-size:10.5px;color:var(--text-muted);margin-top:2px;">
+    {% if query or selected_category or selected_status or selected_location or selected_employee %}
+        » найдено по текущему фильтру: {{ total_count }}
+    {% else %}
+        » весь парк оборудования
+    {% endif %}
+</div>
+{% endblock %}
+{% block content %}
 
-<form method="get" class="row g-2 mb-3 align-items-end">
+<div class="d-flex justify-content-end gap-2 mb-3">
+    <a href="{% url 'reports:export_equipment_excel' %}?{{ request.GET.urlencode }}" class="btn btn-outline-secondary btn-sm"><i class="ph ph-file-xls"></i> Экспорт в Excel</a>
+    <a href="{% url 'equipment:create' %}" class="btn btn-primary btn-sm"><i class="ph ph-plus"></i> Добавить единицу</a>
+</div>
+
+<form method="get" class="row g-2 mb-2 align-items-end">
     <div class="col-md-3">
-        <label class="form-label small">Поиск</label>
-        <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Инв. №, серийный №, наименование, модель...">
+        <label class="form-label"><i class="ph ph-magnifying-glass"></i> Поиск</label>
+        <input type="text" name="q" value="{{ query }}" class="form-control form-control-sm" placeholder="Инв. №, серийный №, наименование, модель...">
     </div>
     <div class="col-md-2">
-        <label class="form-label small">Категория</label>
-        <select name="category" class="form-select">
+        <label class="form-label">Категория</label>
+        <select name="category" class="form-select form-select-sm">
             <option value="">Все</option>
             {% for c in categories %}
                 <option value="{{ c.id }}" {% if selected_category|stringformat:"s" == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
@@ -34,8 +35,8 @@
         </select>
     </div>
     <div class="col-md-2">
-        <label class="form-label small">Статус</label>
-        <select name="status" class="form-select">
+        <label class="form-label">Статус</label>
+        <select name="status" class="form-select form-select-sm">
             <option value="">Все</option>
             {% for s in statuses %}
                 <option value="{{ s.id }}" {% if selected_status|stringformat:"s" == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
@@ -43,8 +44,8 @@
         </select>
     </div>
     <div class="col-md-2">
-        <label class="form-label small">Местонахождение</label>
-        <select name="location" class="form-select">
+        <label class="form-label">Местонахождение</label>
+        <select name="location" class="form-select form-select-sm">
             <option value="">Все</option>
             {% for l in locations %}
                 <option value="{{ l.id }}" {% if selected_location|stringformat:"s" == l.id|stringformat:"s" %}selected{% endif %}>{{ l.name }}</option>
@@ -52,8 +53,8 @@
         </select>
     </div>
     <div class="col-md-2">
-        <label class="form-label small">Ответственный</label>
-        <select name="employee" class="form-select">
+        <label class="form-label">Ответственный</label>
+        <select name="employee" class="form-select form-select-sm">
             <option value="">Все</option>
             {% for e in employees %}
                 <option value="{{ e.id }}" {% if selected_employee|stringformat:"s" == e.id|stringformat:"s" %}selected{% endif %}>{{ e.full_name }}</option>
@@ -61,9 +62,21 @@
         </select>
     </div>
     <div class="col-md-1">
-        <button type="submit" class="btn btn-primary w-100">Найти</button>
+        <button type="submit" class="btn btn-primary btn-sm w-100">Найти</button>
     </div>
 </form>
+
+{% if selected_employee or selected_location %}
+<div class="d-flex align-items-center gap-2 mb-2" style="font-size:9.5px;">
+    <span class="text-muted">печатный список по фильтру:</span>
+    {% if selected_employee %}
+    <a href="{% url 'documents:create_list_employee' selected_employee %}" class="status-pill status-pill--neutral"><i class="ph ph-printer"></i> сотрудника (Word)</a>
+    {% endif %}
+    {% if selected_location %}
+    <a href="{% url 'documents:create_list_location' selected_location %}" class="status-pill status-pill--neutral"><i class="ph ph-printer"></i> кабинета (Word)</a>
+    {% endif %}
+</div>
+{% endif %}
 
 <div class="card">
     <div class="table-responsive">
@@ -82,13 +95,25 @@
             <tbody>
                 {% for item in items %}
                 <tr onclick="window.location='{% url 'equipment:detail' item.pk %}'" style="cursor:pointer;">
-                    <td><strong>{{ item.inventory_number }}</strong></td>
+                    <td class="mono" style="color:var(--text-primary);">{{ item.inventory_number }}</td>
                     <td>{{ item.name }}</td>
                     <td>{{ item.model|default:"—" }}</td>
                     <td>{{ item.category|default:"—" }}</td>
                     <td>
                         {% if item.status %}
-                            <span class="badge bg-secondary badge-status">{{ item.status }}</span>
+                            {% with name=item.status.name %}
+                                <span class="status-pill
+                                    {% if "ремонт" in name %}status-pill--warn
+                                    {% elif "списан" in name %}status-pill--danger
+                                    {% elif "эксплуатац" in name %}status-pill--ok
+                                    {% else %}status-pill--neutral{% endif %}">
+                                    <span class="status-dot
+                                        {% if "ремонт" in name %}status-dot--warn
+                                        {% elif "списан" in name %}status-dot--danger
+                                        {% elif "эксплуатац" in name %}status-dot--ok
+                                        {% else %}status-dot--neutral{% endif %}"></span>{{ name }}
+                                </span>
+                            {% endwith %}
                         {% else %}
                             —
                         {% endif %}

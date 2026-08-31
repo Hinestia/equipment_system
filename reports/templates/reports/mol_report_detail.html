@@ -1,13 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Отчёт: {{ employee.full_name }}{% endblock %}
-{% block content %}
-<a href="{% url 'reports:mol_list' %}" class="mb-3 d-inline-block">&larr; К списку МОЛ</a>
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">{{ employee.full_name }} <span class="text-muted fs-6">({{ employee.position|default:"—" }})</span></h4>
-    <a href="{% url 'documents:create_list_employee' employee.pk %}" class="btn btn-outline-success btn-sm">Сформировать список (Word)</a>
+{% block page_eyebrow %}
+<div style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+    <a href="{% url 'reports:mol_list' %}"><i class="ph ph-arrow-left"></i> К списку МОЛ</a>
 </div>
-
-<p class="text-muted">Подразделение: {{ employee.department|default:"—" }} · Единиц оборудования: {{ equipment_items.count }} · Балансовая стоимость: {{ total_cost|floatformat:2 }}</p>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+    <span class="display-title" style="font-size:24px;">{{ employee.full_name }} <span class="text-muted" style="font-size:15px;">({{ employee.position|default:"—" }})</span></span>
+    <a href="{% url 'documents:create_list_employee' employee.pk %}" class="btn btn-outline-success btn-sm"><i class="ph ph-file-doc"></i> Список (Word)</a>
+</div>
+<p class="text-muted mt-1" style="font-size:10.5px;">Подразделение: {{ employee.department|default:"—" }} · Единиц оборудования: {{ equipment_items.count }} · Балансовая стоимость: <span class="mono">{{ total_cost|floatformat:2 }}</span></p>
+{% endblock %}
+{% block content %}
 
 <div class="card">
     <div class="table-responsive">

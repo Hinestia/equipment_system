@@ -60,6 +60,12 @@ class Equipment(models.Model):
         null=True, blank=True, on_delete=models.SET_NULL,
         related_name="equipment_items",
     )
+    workstation = models.ForeignKey(
+        "workstations.Workstation", verbose_name="Сборка (рабочее место / ПК)",
+        null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="equipment_items",
+        help_text="Если единица входит в сборку — рабочее место или ПК из нескольких компонентов",
+    )
     notes = models.TextField("Примечания", blank=True)
     created_at = models.DateTimeField("Создано", auto_now_add=True)
     updated_at = models.DateTimeField("Обновлено", auto_now=True)

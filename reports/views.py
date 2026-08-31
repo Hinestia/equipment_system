@@ -1,6 +1,7 @@
 import io
+from datetime import date, timedelta
 
-from django.db.models import Count, Sum
+from django.db.models import Count, Q, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from openpyxl import Workbook
@@ -9,6 +10,8 @@ from openpyxl.styles import Font
 from employees.models import Employee
 from equipment.models import Equipment, EquipmentStatus, EquipmentCategory
 from history.models import MovementHistory
+from workstations.models import Workstation
+from .services.chart_builder import build_movement_chart, last_n_months_labels, gauge_arc_endpoint
 
 
 def dashboard(request):
@@ -20,26 +23,93 @@ def dashboard(request):
         .annotate(count=Count("id"))
         .order_by("-count")
     )
-    by_category = (
+    by_category_cost = (
         Equipment.objects.values("category__name")
-        .annotate(count=Count("id"))
-        .order_by("-count")
+        .annotate(count=Count("id"), total=Sum("purchase_cost"))
+        .order_by("-total")[:4]
     )
     total_cost = Equipment.objects.aggregate(total=Sum("purchase_cost"))["total"] or 0
 
     recent_events = MovementHistory.objects.select_related(
         "equipment", "from_employee", "to_employee", "from_location", "to_location"
-    ).order_by("-event_date")[:8]
+    ).order_by("-event_date")[:6]
 
     mol_count = Employee.objects.filter(is_mol=True, is_active=True).count()
+    workstation_count = Workstation.objects.count()
+
+    # ---- Карточки материально ответственных лиц (топ-3 по стоимости закреплённого) ----
+    today = date.today()
+    month_start = date(today.year, today.month, 1)
+    prev_month_end = month_start - timedelta(days=1)
+    prev_month_start = date(prev_month_end.year, prev_month_end.month, 1)
+
+    mol_cards = []
+    mol_employees = (
+        Employee.objects.filter(is_mol=True, is_active=True)
+        .annotate(eq_count=Count("equipment_items"), eq_cost=Sum("equipment_items__purchase_cost"))
+        .order_by("-eq_cost")[:3]
+    )
+    max_cost = max((e.eq_cost or 0 for e in mol_employees), default=0) or 1
+    for emp in mol_employees:
+        eq_qs = Equipment.objects.filter(responsible_employee=emp)
+        eq_count = eq_qs.count()
+        in_use = eq_qs.filter(status__name__icontains="эксплуатац").count()
+        utilization = round((in_use / eq_count) * 100) if eq_count else 0
+
+        events_this_month = MovementHistory.objects.filter(
+            Q(from_employee=emp) | Q(to_employee=emp), event_date__gte=month_start
+        ).count()
+        events_prev_month = MovementHistory.objects.filter(
+            Q(from_employee=emp) | Q(to_employee=emp),
+            event_date__gte=prev_month_start, event_date__lt=month_start,
+        ).count()
+
+        mol_cards.append({
+            "employee": emp,
+            "count": eq_count,
+            "acts_this_month": events_this_month,
+            "total_cost": emp.eq_cost or 0,
+            "bar_pct": round(((emp.eq_cost or 0) / max_cost) * 100) if max_cost else 0,
+            "trend_up": events_this_month >= events_prev_month,
+        })
+
+    # ---- График "Движение оборудования" за последние 9 месяцев ----
+    months = last_n_months_labels(9, today=today)
+    monthly_counts = []
+    for year, month, label in months:
+        next_month = date(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
+        count = MovementHistory.objects.filter(
+            event_date__gte=date(year, month, 1), event_date__lt=next_month
+        ).count()
+        monthly_counts.append({"label": label, "count": count})
+    chart = build_movement_chart(monthly_counts)
+
+    # ---- Заполненность карточек оборудования (насколько заполнены ключевые поля) ----
+    if total_equipment:
+        complete_count = Equipment.objects.exclude(
+            Q(serial_number="") | Q(model="") | Q(purchase_date__isnull=True) |
+            Q(purchase_cost__isnull=True) | Q(specifications="")
+        ).count()
+        completeness_pct = round((complete_count / total_equipment) * 100, 2)
+    else:
+        completeness_pct = 0
+
+    gauge_x, gauge_y = gauge_arc_endpoint(completeness_pct)
 
     context = {
         "total_equipment": total_equipment,
         "by_status": by_status,
-        "by_category": by_category,
+        "by_category_cost": by_category_cost,
         "total_cost": total_cost,
+        "workstation_count": workstation_count,
         "recent_events": recent_events,
         "mol_count": mol_count,
+        "mol_cards": mol_cards,
+        "chart": chart,
+        "completeness_pct": completeness_pct,
+        "gauge_x": gauge_x,
+        "gauge_y": gauge_y,
+        "today": today,
     }
     return render(request, "reports/dashboard.html", context)
 

@@ -1,60 +1,102 @@
 {% extends "base.html" %}
 {% block title %}{{ item.name }} — карточка{% endblock %}
+{% block page_eyebrow %}
+<div style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+    <a href="{% url 'equipment:list' %}"><i class="ph ph-arrow-left"></i> Реестр</a>
+    <i class="ph ph-caret-right"></i>
+    <span class="mono" style="color:var(--text-secondary);">{{ item.inventory_number }}</span>
+</div>
+<div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mt-1">
+    <div>
+        <div class="d-flex align-items-baseline gap-2 flex-wrap">
+            <span class="display-title" style="font-size:26px;">{{ item.name }}</span>
+            {% if item.status %}
+                {% with name=item.status.name %}
+                <span class="status-pill
+                    {% if "ремонт" in name %}status-pill--warn
+                    {% elif "списан" in name %}status-pill--danger
+                    {% elif "эксплуатац" in name %}status-pill--ok
+                    {% else %}status-pill--neutral{% endif %}">{{ name }}</span>
+                {% endwith %}
+            {% endif %}
+        </div>
+        <div style="font-size:10.5px;color:var(--text-muted);margin-top:2px;">
+            » инв. № <span class="mono" style="color:var(--text-secondary);">{{ item.inventory_number }}</span>
+            {% if item.serial_number %} · сер. № <span class="mono" style="color:var(--text-secondary);">{{ item.serial_number }}</span>{% endif %}
+            {% if item.category %} · {{ item.category }}{% endif %}
+        </div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'documents:create_card' item.pk %}" class="btn btn-outline-success btn-sm"><i class="ph ph-file-doc"></i> Карточка (Word)</a>
+        <a href="{% url 'documents:create_label' item.pk %}" class="btn btn-outline-info btn-sm"><i class="ph ph-qr-code"></i> Бирка (PDF)</a>
+        <a href="{% url 'equipment:status_change' item.pk %}" class="btn btn-outline-secondary btn-sm"><i class="ph ph-arrows-clockwise"></i> Статус</a>
+        <a href="{% url 'equipment:transfer' item.pk %}" class="btn btn-primary btn-sm"><i class="ph ph-arrows-left-right"></i> Передать</a>
+    </div>
+</div>
+{% endblock %}
 {% block content %}
-<a href="{% url 'equipment:list' %}" class="mb-3 d-inline-block">&larr; К реестру</a>
-
 <div class="row">
     <div class="col-md-7">
         <div class="card mb-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <strong>Карточка единицы имущества</strong>
-                <div>
-                    <a href="{% url 'documents:create_card' item.pk %}" class="btn btn-sm btn-outline-success">Скачать карточку (Word)</a>
-                    <a href="{% url 'equipment:status_change' item.pk %}" class="btn btn-sm btn-outline-secondary">Изменить статус</a>
-                    <a href="{% url 'equipment:transfer' item.pk %}" class="btn btn-sm btn-outline-primary">Передать / переместить</a>
-                </div>
+            <div class="card-header d-flex justify-content-between align-items-baseline">
+                <span>Атрибуты</span>
+                <span style="font-size:9.5px;color:var(--text-muted);">обновлено {{ item.updated_at|date:"d.m.Y" }}</span>
             </div>
             <div class="card-body">
-                <table class="table table-borderless mb-0">
-                    <tr><th style="width:40%">Инвентарный номер</th><td>{{ item.inventory_number }}</td></tr>
-                    <tr><th>Серийный номер</th><td>{{ item.serial_number|default:"—" }}</td></tr>
-                    <tr><th>Наименование</th><td>{{ item.name }}</td></tr>
-                    <tr><th>Модель</th><td>{{ item.model|default:"—" }}</td></tr>
-                    <tr><th>Категория</th><td>{{ item.category|default:"—" }}</td></tr>
-                    <tr><th>Технические характеристики</th><td>{{ item.specifications|linebreaksbr|default:"—" }}</td></tr>
-                    <tr><th>Дата поступления</th><td>{{ item.purchase_date|default:"—" }}</td></tr>
-                    <tr><th>Балансовая стоимость</th><td>{{ item.purchase_cost|default:"—" }}</td></tr>
-                    <tr><th>Статус</th><td>{{ item.status|default:"—" }}</td></tr>
-                    <tr><th>Текущее местонахождение</th><td>{{ item.current_location|default:"—" }}</td></tr>
-                    <tr><th>Ответственное лицо</th><td>{{ item.responsible_employee|default:"—" }}</td></tr>
-                    <tr><th>Примечания</th><td>{{ item.notes|linebreaksbr|default:"—" }}</td></tr>
-                </table>
+                <div class="row" style="row-gap:10px;font-size:10.5px;">
+                    <div class="col-5 text-muted">Инвентарный номер</div><div class="col-7 mono" style="color:var(--text-primary);">{{ item.inventory_number }}</div>
+                    <div class="col-5 text-muted">Серийный номер</div><div class="col-7 mono">{{ item.serial_number|default:"—" }}</div>
+                    <div class="col-5 text-muted">Модель</div><div class="col-7">{{ item.model|default:"—" }}</div>
+                    <div class="col-5 text-muted">Категория</div><div class="col-7">{{ item.category|default:"—" }}</div>
+                    <div class="col-5 text-muted">Технические характеристики</div><div class="col-7">{{ item.specifications|linebreaksbr|default:"—" }}</div>
+                    <div class="col-5 text-muted">Дата поступления</div><div class="col-7">{{ item.purchase_date|default:"—" }}</div>
+                    <div class="col-5 text-muted">Балансовая стоимость</div><div class="col-7 mono" style="color:var(--text-primary);">{{ item.purchase_cost|default:"—" }}</div>
+                    <div class="col-5 text-muted">Примечания</div><div class="col-7">{{ item.notes|linebreaksbr|default:"—" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Текущее размещение</div>
+            <div class="card-body">
+                <div class="row" style="row-gap:10px;font-size:10.5px;">
+                    <div class="col-5 text-muted">Местонахождение</div><div class="col-7">{{ item.current_location|default:"—" }}</div>
+                    <div class="col-5 text-muted">Ответственное лицо</div><div class="col-7">{{ item.responsible_employee|default:"—" }}</div>
+                    <div class="col-5 text-muted">Сборка (рабочее место / ПК)</div>
+                    <div class="col-7">
+                        {% if item.workstation %}
+                            <a href="{% url 'workstations:detail' item.workstation.pk %}"><i class="ph ph-tree-structure"></i> {{ item.workstation.name }}</a>
+                        {% else %}
+                            <span class="text-muted">не входит ни в одну сборку</span>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="col-md-5">
         <div class="card">
-            <div class="card-header"><strong>История эксплуатации</strong></div>
+            <div class="card-header"><i class="ph ph-clock-counter-clockwise"></i> История эксплуатации</div>
             <ul class="list-group list-group-flush">
                 {% for event in events %}
                 <li class="list-group-item">
                     <div class="d-flex justify-content-between">
-                        <strong>{{ event.get_event_type_display }}</strong>
-                        <span class="text-muted small">{{ event.event_date|date:"d.m.Y H:i" }}</span>
+                        <strong style="color:var(--text-primary);font-size:11px;">{{ event.get_event_type_display }}</strong>
+                        <span class="text-muted mono" style="font-size:9.5px;">{{ event.event_date|date:"d.m.Y H:i" }}</span>
                     </div>
                     {% if event.from_employee or event.to_employee %}
-                        <div class="small">
+                        <div style="font-size:10.5px;">
                             Сотрудник: {{ event.from_employee|default:"—" }} → {{ event.to_employee|default:"—" }}
                         </div>
                     {% endif %}
                     {% if event.from_location or event.to_location %}
-                        <div class="small">
+                        <div style="font-size:10.5px;">
                             Местонахождение: {{ event.from_location|default:"—" }} → {{ event.to_location|default:"—" }}
                         </div>
                     {% endif %}
                     {% if event.comment %}
-                        <div class="small text-muted">{{ event.comment }}</div>
+                        <div class="text-muted" style="font-size:10px;">{{ event.comment }}</div>
                     {% endif %}
                 </li>
                 {% empty %}

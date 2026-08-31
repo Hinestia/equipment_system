@@ -1,11 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Изменить статус: {{ item.name }}{% endblock %}
+{% block page_eyebrow %}
+<div style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+    <a href="{% url 'equipment:detail' item.pk %}"><i class="ph ph-arrow-left"></i> К карточке</a>
+</div>
+<div class="display-title mt-1" style="font-size:24px;">Изменить статус</div>
+<div style="font-size:10.5px;color:var(--text-muted);">» {{ item.name }} · <span class="mono">{{ item.inventory_number }}</span></div>
+{% endblock %}
 {% block content %}
-<a href="{% url 'equipment:detail' item.pk %}" class="mb-3 d-inline-block">&larr; К карточке</a>
-<h4 class="mb-3">Изменить статус: {{ item.name }} ({{ item.inventory_number }})</h4>
-
-<div class="alert alert-light border">
-    Текущий статус: <strong>{{ item.status|default:"—" }}</strong>
+<div class="alert alert-info mb-3" style="max-width:600px;">
+    Текущий статус: <strong style="color:var(--text-primary);">{{ item.status|default:"—" }}</strong>
 </div>
 
 <form method="post" class="card card-body" style="max-width: 600px;">
@@ -22,6 +26,6 @@
         <label class="form-label">Комментарий</label>
         <textarea name="comment" class="form-control" rows="2" placeholder="Например: причина неисправности..."></textarea>
     </div>
-    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <button type="submit" class="btn btn-primary"><i class="ph ph-check"></i> Сохранить</button>
 </form>
 {% endblock %}

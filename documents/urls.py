@@ -13,4 +13,5 @@ urlpatterns = [
     path("list/location/<int:location_pk>/create/", views.create_list_by_location, name="create_list_location"),
     path("list/department/<int:department_pk>/create/", views.create_list_by_department, name="create_list_department"),
     path("card/<int:equipment_pk>/create/", views.create_card, name="create_card"),
+    path("label/<int:equipment_pk>/create/", views.create_label, name="create_label"),
 ]

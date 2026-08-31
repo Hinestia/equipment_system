@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Расформировать сборку{% endblock %}
+{% block content %}
+<div class="card card-body" style="max-width: 500px;">
+    <div class="display-title mb-2" style="font-size:20px;">Расформировать сборку «{{ workstation.name }}»?</div>
+    <p class="text-muted">
+        Оборудование, входящее в сборку ({{ workstation.equipment_items.count }} шт.),
+        останется в общем реестре — просто перестанет быть частью этой сборки.
+        Сама запись о сборке будет удалена безвозвратно.
+    </p>
+    <form method="post" class="d-flex gap-2">
+        {% csrf_token %}
+        <a href="{% url 'workstations:detail' workstation.pk %}" class="btn btn-outline-secondary">Отмена</a>
+        <button type="submit" class="btn btn-outline-danger"><i class="ph ph-trash"></i> Расформировать</button>
+    </form>
+</div>
+{% endblock %}

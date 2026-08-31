@@ -1,12 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Передать: {{ item.name }}{% endblock %}
+{% block page_eyebrow %}
+<div style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+    <a href="{% url 'equipment:detail' item.pk %}"><i class="ph ph-arrow-left"></i> К карточке</a>
+</div>
+<div class="display-title mt-1" style="font-size:24px;">Передать / переместить</div>
+<div style="font-size:10.5px;color:var(--text-muted);">» {{ item.name }} · <span class="mono">{{ item.inventory_number }}</span></div>
+{% endblock %}
 {% block content %}
-<a href="{% url 'equipment:detail' item.pk %}" class="mb-3 d-inline-block">&larr; К карточке</a>
-<h4 class="mb-3">Передать / переместить: {{ item.name }} ({{ item.inventory_number }})</h4>
-
-<div class="alert alert-light border">
-    Сейчас: <strong>{{ item.responsible_employee|default:"—" }}</strong>,
-    местонахождение — <strong>{{ item.current_location|default:"—" }}</strong>
+<div class="alert alert-info mb-3" style="max-width:600px;">
+    Сейчас: <strong style="color:var(--text-primary);">{{ item.responsible_employee|default:"—" }}</strong>,
+    местонахождение — <strong style="color:var(--text-primary);">{{ item.current_location|default:"—" }}</strong>
 </div>
 
 <form method="post" class="card card-body" style="max-width: 600px;">
@@ -33,6 +37,6 @@
         <label class="form-label">Комментарий</label>
         <textarea name="comment" class="form-control" rows="2" placeholder="Например: основание, номер служебной записки..."></textarea>
     </div>
-    <button type="submit" class="btn btn-primary">Зафиксировать</button>
+    <button type="submit" class="btn btn-primary"><i class="ph ph-arrows-left-right"></i> Зафиксировать</button>
 </form>
 {% endblock %}

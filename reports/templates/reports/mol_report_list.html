@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Отчёты по МОЛ{% endblock %}
+{% block page_eyebrow %}
+<span class="display-title" style="font-size:26px;">Материально ответственные лица</span>
+{% endblock %}
 {% block content %}
-<h3 class="mb-3">Материально ответственные лица</h3>
 
 <div class="card">
     <div class="table-responsive">
@@ -21,8 +23,8 @@
                     <td>{{ row.employee.full_name }}</td>
                     <td>{{ row.employee.department|default:"—" }}</td>
                     <td>{{ row.count }}</td>
-                    <td>{{ row.total_cost|floatformat:2 }}</td>
-                    <td><a href="{% url 'reports:mol_detail' row.employee.pk %}" class="btn btn-sm btn-outline-primary">Подробнее</a></td>
+                    <td class="mono">{{ row.total_cost|floatformat:2 }}</td>
+                    <td><a href="{% url 'reports:mol_detail' row.employee.pk %}" class="btn btn-sm btn-outline-primary"><i class="ph ph-arrow-square-out"></i> Подробнее</a></td>
                 </tr>
                 {% empty %}
                 <tr><td colspan="5" class="text-center text-muted py-4">

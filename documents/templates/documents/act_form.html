@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 {% block title %}{{ label }}{% endblock %}
+{% block page_eyebrow %}
+<div style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+    <a href="{% url 'documents:act_menu' %}"><i class="ph ph-arrow-left"></i> К выбору акта</a>
+</div>
+<div class="display-title mt-1" style="font-size:24px;">{{ label }}</div>
+{% endblock %}
 {% block content %}
-<a href="{% url 'documents:act_menu' %}" class="mb-3 d-inline-block">&larr; К выбору акта</a>
-<h4 class="mb-3">{{ label }}</h4>
 
 <form method="post">
     {% csrf_token %}
@@ -92,7 +96,7 @@
                     <textarea name="comment" class="form-control" rows="2"></textarea>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Сформировать документ</button>
+                <button type="submit" class="btn btn-primary"><i class="ph ph-file-plus"></i> Сформировать документ</button>
             </div>
         </div>
     </div>

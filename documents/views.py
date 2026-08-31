@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.http import FileResponse
 
 from .models import Document, DocumentEquipment, DocumentType
-from .services import generator
+from .services import generator, label_generator
 
 from employees.models import Department, Employee, Location
 from equipment.models import Equipment, EquipmentStatus
@@ -247,3 +247,15 @@ def create_card(request, equipment_pk):
     buffer = generator.render_equipment_card(equipment)
     filename = f"karta_{equipment.inventory_number}.docx"
     return FileResponse(buffer, as_attachment=True, filename=filename)
+
+
+def create_label(request, equipment_pk):
+    """
+    Маленькая печатная бирка (PDF, 90x50 мм) с QR-кодом инвентарного номера —
+    для наклейки на само оборудование. Формируется на лету, не сохраняется
+    как документ в реестре.
+    """
+    equipment = get_object_or_404(Equipment, pk=equipment_pk)
+    buffer = label_generator.generate_equipment_label(equipment)
+    filename = f"birka_{equipment.inventory_number}.pdf"
+    return FileResponse(buffer, as_attachment=True, filename=filename, content_type="application/pdf")

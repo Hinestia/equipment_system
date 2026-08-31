@@ -1,16 +1,19 @@
 {% extends "base.html" %}
 {% block title %}Вход{% endblock %}
-{% block content %}
-<div class="d-flex justify-content-center">
+{% block content_guest_inner %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 100vh;">
     <div class="card" style="width: 100%; max-width: 380px;">
         <div class="card-body">
-            <h4 class="text-center mb-4">Вход в систему</h4>
+            <div class="text-center mb-3">
+                <span class="dot-mark" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--accent);"></span>
+            </div>
+            <div class="display-title text-center mb-4" style="font-size:24px;">Учёт оборудования АСУТП</div>
 
             {% if form.errors %}
                 <div class="alert alert-danger">Неверный логин или пароль.</div>
             {% endif %}
             {% if next %}
-                <div class="alert alert-info small">Для доступа к этой странице нужно войти.</div>
+                <div class="alert alert-info">Для доступа к этой странице нужно войти.</div>
             {% endif %}
 
             <form method="post">
@@ -24,7 +27,7 @@
                     {{ form.password }}
                 </div>
                 <input type="hidden" name="next" value="{{ next }}">
-                <button type="submit" class="btn btn-primary w-100">Войти</button>
+                <button type="submit" class="btn btn-primary w-100"><i class="ph ph-sign-in"></i> Войти</button>
             </form>
         </div>
     </div>

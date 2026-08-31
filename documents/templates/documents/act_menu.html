@@ -1,44 +1,47 @@
 {% extends "base.html" %}
 {% block title %}Сформировать акт{% endblock %}
+{% block page_eyebrow %}
+<div style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+    <a href="{% url 'documents:list' %}"><i class="ph ph-arrow-left"></i> К документам</a>
+</div>
+<div class="display-title mt-1" style="font-size:24px;">Какой акт сформировать?</div>
+{% endblock %}
 {% block content %}
-<a href="{% url 'documents:list' %}" class="mb-3 d-inline-block">&larr; К документам</a>
-<h4 class="mb-3">Какой акт сформировать?</h4>
-
 <div class="row g-3" style="max-width: 800px;">
     {% for act_type in act_types %}
     <div class="col-md-6">
         <a href="{% url 'documents:create_act' act_type.code %}" class="card text-decoration-none h-100">
             <div class="card-body">
-                <h6 class="card-title text-dark">{{ act_type.name }}</h6>
-                <p class="card-text text-muted small mb-0">Номер будет присвоен автоматически ({{ act_type.number_prefix }}-XXXX)</p>
+                <div style="color:var(--text-primary);font-size:12.5px;display:flex;align-items:center;gap:6px;"><i class="ph ph-file-text" style="color:var(--accent);"></i>{{ act_type.name }}</div>
+                <p class="text-muted mb-0 mt-1" style="font-size:10px;">Номер будет присвоен автоматически (<span class="mono">{{ act_type.number_prefix }}-XXXX</span>)</p>
             </div>
         </a>
     </div>
     {% endfor %}
 </div>
 
-<hr class="my-4" style="max-width: 800px;">
+<hr class="my-4" style="max-width: 800px;border-color:var(--divider);">
 
-<h5>Ведомости и списки</h5>
+<div class="display-title mb-3" style="font-size:19px;">Ведомости и списки</div>
 <div class="row g-3" style="max-width: 800px;">
     <div class="col-md-6">
         <a href="{% url 'documents:create_ledger' 'ledger_equipment' %}" class="card text-decoration-none h-100">
             <div class="card-body">
-                <h6 class="card-title text-dark">Ведомость оборудования</h6>
-                <p class="card-text text-muted small mb-0">Полный список всего оборудования в реестре</p>
+                <div style="color:var(--text-primary);font-size:12.5px;display:flex;align-items:center;gap:6px;"><i class="ph ph-list-bullets" style="color:var(--accent);"></i>Ведомость оборудования</div>
+                <p class="text-muted mb-0 mt-1" style="font-size:10px;">Полный список всего оборудования в реестре</p>
             </div>
         </a>
     </div>
     <div class="col-md-6">
         <a href="{% url 'documents:create_ledger' 'ledger_inventory' %}" class="card text-decoration-none h-100">
             <div class="card-body">
-                <h6 class="card-title text-dark">Инвентаризационная ведомость</h6>
-                <p class="card-text text-muted small mb-0">Тот же состав — для проведения инвентаризации</p>
+                <div style="color:var(--text-primary);font-size:12.5px;display:flex;align-items:center;gap:6px;"><i class="ph ph-clipboard-text" style="color:var(--accent);"></i>Инвентаризационная ведомость</div>
+                <p class="text-muted mb-0 mt-1" style="font-size:10px;">Тот же состав — для проведения инвентаризации</p>
             </div>
         </a>
     </div>
 </div>
-<p class="text-muted small mt-3" style="max-width: 800px;">
+<p class="text-muted mt-3" style="max-width: 800px;font-size:10.5px;">
     Список оборудования конкретного сотрудника / кабинета / подразделения формируется
     прямо из реестра оборудования — примените нужный фильтр на странице
     <a href="{% url 'equipment:list' %}">реестра</a> и нажмите соответствующую кнопку.

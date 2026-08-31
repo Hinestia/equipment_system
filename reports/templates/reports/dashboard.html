@@ -1,81 +1,207 @@
 {% extends "base.html" %}
 {% block title %}Главная{% endblock %}
-{% block content %}
-<h3 class="mb-3">Обзор</h3>
 
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card text-center card-body">
-            <div class="display-6">{{ total_equipment }}</div>
-            <div class="text-muted small">единиц оборудования в реестре</div>
+{% block page_eyebrow %}
+<div>
+    <div style="display:flex;align-items:center;gap:9px;">
+        <span class="handwritten" style="font-size:26px;color:var(--text-primary);">Здравствуйте, {{ user.username }}</span>
+        {% if user.is_staff %}<span class="badge-admin">★ АДМИН</span>{% endif %}
+    </div>
+    <div style="font-size:10.5px;color:var(--text-muted);margin-top:2px;">» {{ today|date:"d.m.Y" }}</div>
+</div>
+<form action="{% url 'equipment:list' %}" method="get" class="search-pill">
+    <i class="ph ph-magnifying-glass"></i>
+    <input type="text" name="q" placeholder="Поиск по инв. номеру" style="background:none;border:none;outline:none;color:var(--text-primary);font-size:12.5px;width:100%;">
+</form>
+{% endblock %}
+
+{% block content %}
+
+{% if mol_cards %}
+<div class="row g-3 mb-3">
+    {% for card in mol_cards %}
+    <div class="col-md-4">
+        <div class="card" style="padding:11px 12px;">
+            <div class="d-flex gap-2 align-items-start">
+                <span class="avatar-dot" style="width:30px;height:30px;">{{ card.employee.full_name|slice:":1" }}</span>
+                <div class="min-width-0">
+                    <div style="font-size:12.5px;color:var(--text-primary);">{{ card.employee.full_name }} <span style="color:var(--accent);">●</span></div>
+                    <div style="font-size:10px;color:var(--text-muted);">МОЛ{% if card.employee.department %} · {{ card.employee.department }}{% endif %}</div>
+                </div>
+                <span class="ms-auto" style="font-size:14px;color:{% if card.trend_up %}var(--ok){% else %}var(--danger){% endif %};">
+                    <i class="ph {% if card.trend_up %}ph-trend-up{% else %}ph-trend-down{% endif %}"></i>
+                </span>
+            </div>
+            <div class="d-flex align-items-end justify-content-between mt-2">
+                <div style="font-size:10px;color:var(--text-muted);line-height:1.3;">
+                    {{ card.count }} единиц{{ card.count|pluralize:",ы," }}<br>
+                    {{ card.acts_this_month }} событи{{ card.acts_this_month|pluralize:"е,я,й" }} за месяц
+                </div>
+                <div class="mono" style="font-size:15px;font-weight:600;color:{% if card.trend_up %}var(--ok){% else %}var(--danger){% endif %};">
+                    {{ card.total_cost|floatformat:0 }}
+                </div>
+            </div>
+            <div style="height:5px;border:1.5px solid var(--border-light);border-radius:4px;margin-top:8px;background:linear-gradient(to right,var(--accent) {{ card.bar_pct }}%,transparent {{ card.bar_pct }}%);"></div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-center card-body">
-            <div class="display-6">{{ mol_count }}</div>
-            <div class="text-muted small">материально ответственных лиц</div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card mb-3" style="padding:14px 16px;">
+    <span class="text-muted"><i class="ph ph-identification-badge"></i> Пока нет материально ответственных лиц с закреплённым оборудованием — отметьте нужных сотрудников флагом «МОЛ» в админке.</span>
+</div>
+{% endif %}
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-7">
+        <div class="card h-100" style="padding:12px 14px;">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div style="font-size:12.5px;color:var(--text-primary);">Движение оборудования</div>
+                    <div style="font-size:10px;color:var(--text-muted);">{{ chart.labels.0 }} — {{ chart.labels|last }}</div>
+                </div>
+            </div>
+            {% if chart.has_data %}
+            <div style="position:relative;margin-top:10px;height:168px;border-left:1.5px solid var(--border-subtle);border-bottom:1.5px solid var(--border-subtle);">
+                <svg viewBox="0 0 {{ chart.width }} {{ chart.height }}" preserveAspectRatio="none" style="width:100%;height:100%;display:block;">
+                    <path d="{{ chart.area_path }}" fill="rgba(145,132,217,.20)"></path>
+                    <path d="{{ chart.line_path }}" fill="none" stroke="var(--accent)" stroke-width="2.5"></path>
+                    {% if chart.peak %}
+                    <circle cx="{{ chart.peak.x }}" cy="{{ chart.peak.y }}" r="5" fill="#1c1f30" stroke="var(--accent)" stroke-width="2.5"></circle>
+                    {% endif %}
+                </svg>
+                {% if chart.peak %}
+                <div style="position:absolute; left: calc({{ chart.peak.x }} / {{ chart.width }} * 100%); top:-2px; transform:translateX(-50%); border:1.5px solid var(--border-soft); border-radius:8px; background:var(--bg-panel); padding:5px 8px; font-size:9.5px; color:var(--text-primary); line-height:1.3; white-space:nowrap;">
+                    {{ chart.peak.count }} событи{{ chart.peak.count|pluralize:"е,я,й" }}<br>
+                    <span style="color:var(--text-muted);">пик за период</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="d-flex justify-content-between" style="font-size:9px;color:var(--text-muted);margin-top:5px;">
+                {% for label in chart.labels %}<span>{{ label }}</span>{% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="ph ph-chart-line" style="font-size:28px;"></i>
+                <div class="mt-2 small">Пока нет событий истории для построения графика.</div>
+            </div>
+            {% endif %}
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-center card-body">
-            <div class="display-6">{{ total_cost|floatformat:0 }}</div>
-            <div class="text-muted small">суммарная балансовая стоимость</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center card-body d-flex flex-column justify-content-center">
-            <a href="{% url 'equipment:list' %}" class="btn btn-primary btn-sm mb-1">Открыть реестр</a>
-            <a href="{% url 'documents:act_menu' %}" class="btn btn-outline-secondary btn-sm">Сформировать акт</a>
+
+    <div class="col-lg-5">
+        <div class="card h-100" style="padding:12px 14px;">
+            <div class="d-flex justify-content-between align-items-baseline">
+                <div style="font-size:12.5px;color:var(--text-primary);">Топ по стоимости</div>
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">категории оборудования</div>
+            <div class="d-flex flex-column gap-2">
+                {% for row in by_category_cost %}
+                <div class="d-flex align-items-center gap-2">
+                    <span class="mono" style="font-size:10px;color:var(--text-muted);width:12px;">{{ forloop.counter }}</span>
+                    <i class="ph ph-cube" style="color:var(--text-faint);"></i>
+                    <span style="font-size:11.5px;color:var(--text-secondary);">{{ row.category__name|default:"Без категории" }}</span>
+                    <span class="ms-auto mono" style="font-size:11px;color:var(--text-primary);">{{ row.total|default:0|floatformat:0 }}</span>
+                </div>
+                {% empty %}
+                <div class="text-muted small">Оборудования пока нет.</div>
+                {% endfor %}
+            </div>
+            {% if by_category_cost %}
+            <div class="text-center mt-2" style="font-size:10.5px;">
+                <a href="{% url 'equipment:list' %}">Смотреть все &rarr;</a>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
 <div class="row g-3">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">По статусам</div>
-            <ul class="list-group list-group-flush">
+    <div class="col-lg-4">
+        <div class="card h-100" style="padding:12px 14px;">
+            <div style="font-size:12.5px;color:var(--text-primary);">Статусы</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:9px;">все единицы: {{ total_equipment }}</div>
+            <div class="d-flex flex-column gap-2" style="font-size:11px;color:var(--text-tertiary);">
                 {% for row in by_status %}
-                <li class="list-group-item d-flex justify-content-between">
-                    <span>{{ row.status__name|default:"Без статуса" }}</span>
-                    <strong>{{ row.count }}</strong>
-                </li>
+                <div class="d-flex justify-content-between">
+                    <span>
+                        {% with name=row.status__name|default:"" %}
+                            {% if "ремонт" in name %}<span class="status-dot status-dot--warn"></span>
+                            {% elif "списан" in name %}<span class="status-dot status-dot--danger"></span>
+                            {% elif "эксплуатац" in name %}<span class="status-dot status-dot--ok"></span>
+                            {% else %}<span class="status-dot status-dot--neutral"></span>
+                            {% endif %}
+                        {% endwith %}
+                        {{ row.status__name|default:"Без статуса" }}
+                    </span>
+                    <span class="mono">{{ row.count }}</span>
+                </div>
                 {% empty %}
-                <li class="list-group-item text-muted">Оборудования пока нет.</li>
+                <div class="text-muted">Оборудования пока нет.</div>
                 {% endfor %}
-            </ul>
+            </div>
+            <div class="mt-2" style="font-size:10px; display:inline-block; padding:4px 9px; border:1.5px solid var(--border-light); border-radius:7px; color:var(--text-tertiary); width: fit-content;">
+                <a href="{% url 'history:list' %}" style="color:inherit;">Подробнее &rsaquo;</a>
+            </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">По категориям</div>
-            <ul class="list-group list-group-flush">
-                {% for row in by_category %}
-                <li class="list-group-item d-flex justify-content-between">
-                    <span>{{ row.category__name|default:"Без категории" }}</span>
-                    <strong>{{ row.count }}</strong>
-                </li>
-                {% empty %}
-                <li class="list-group-item text-muted">Оборудования пока нет.</li>
-                {% endfor %}
-            </ul>
+
+    <div class="col-lg-4">
+        <div class="card h-100 text-center" style="padding:12px 14px;">
+            <div class="text-start" style="font-size:12.5px;color:var(--text-primary);">Заполненность карточек</div>
+            <div class="text-start" style="font-size:10px;color:var(--text-muted);">по всем единицам реестра</div>
+            <div style="position:relative;margin:10px auto 0;width:150px;height:82px;">
+                <svg viewBox="0 0 150 82" style="width:100%;height:100%;display:block;">
+                    <path d="M12 78 A63 63 0 0 1 138 78" fill="none" stroke="var(--border-subtle)" stroke-width="11" stroke-linecap="round"></path>
+                    <path d="M12 78 A63 63 0 0 1 {{ gauge_x }} {{ gauge_y }}" fill="none" stroke="var(--accent)" stroke-width="11" stroke-linecap="round"></path>
+                </svg>
+                <div style="position:absolute;left:0;right:0;bottom:2px;">
+                    <div class="mono" style="font-size:15px;font-weight:600;color:var(--text-primary);">{{ completeness_pct }}%</div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between" style="font-size:9px;color:var(--text-muted);margin-top:2px;">
+                <span>0%</span><span>по {{ total_equipment }} карточкам</span><span>100%</span>
+            </div>
         </div>
+    </div>
+
+    <div class="col-lg-4">
+        {% if workstation_count %}
+        <a href="{% url 'workstations:list' %}" class="text-decoration-none">
+        <div class="card h-100 text-center" style="padding:14px 12px;">
+            <div style="width:34px;height:34px;margin:0 auto;border:1.5px solid var(--border-soft);border-radius:50%;background:var(--bg-sidebar);display:flex;align-items:center;justify-content:center;color:var(--accent);">
+                <i class="ph ph-tree-structure" style="font-size:17px;"></i>
+            </div>
+            <div style="font-size:12.5px;color:var(--text-primary);margin-top:9px;">{{ workstation_count }} сборк{{ workstation_count|pluralize:"а,и,и" }}</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Открыть список сборок и рабочих мест</div>
+        </div>
+        </a>
+        {% else %}
+        <div class="card h-100 text-center" style="padding:14px 12px; border-style:dashed;">
+            <div style="width:34px;height:34px;margin:0 auto;border:1.5px solid var(--border-soft);border-radius:50%;background:var(--bg-sidebar);display:flex;align-items:center;justify-content:center;color:var(--accent);">
+                <i class="ph ph-stack" style="font-size:17px;"></i>
+            </div>
+            <div style="font-size:12.5px;color:var(--text-primary);margin-top:9px;">Сборки ещё не созданы</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:4px;line-height:1.35;">Соберите рабочее место из<br>единиц реестра — в один клик</div>
+            <a href="{% url 'workstations:create' %}" class="btn btn-primary btn-sm mt-2"><i class="ph ph-plus"></i> Создать сборку</a>
+        </div>
+        {% endif %}
     </div>
 </div>
 
-<div class="card mt-3">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <span>Последние события</span>
+<div class="card mt-3" style="padding:0;">
+    <div class="card-header d-flex justify-content-between align-items-center" style="padding:10px 14px;">
+        <span><i class="ph ph-activity"></i> Последние события</span>
         <a href="{% url 'history:list' %}" class="small">Весь журнал &rarr;</a>
     </div>
     <ul class="list-group list-group-flush">
         {% for event in recent_events %}
-        <li class="list-group-item small d-flex justify-content-between">
+        <li class="list-group-item small d-flex justify-content-between align-items-center">
             <span>
                 <strong>{{ event.get_event_type_display }}</strong> —
                 <a href="{% url 'equipment:detail' event.equipment_id %}">{{ event.equipment.inventory_number }}</a>
             </span>
-            <span class="text-muted">{{ event.event_date|date:"d.m.Y H:i" }}</span>
+            <span class="text-muted mono">{{ event.event_date|date:"d.m.Y H:i" }}</span>
         </li>
         {% empty %}
         <li class="list-group-item text-muted">Событий пока нет.</li>
