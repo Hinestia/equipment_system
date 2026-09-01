@@ -68,6 +68,41 @@ def equipment_detail(request, pk):
     return render(request, "equipment/equipment_detail.html", {"item": item, "events": events})
 
 
+def equipment_edit(request, pk):
+    """
+    Редактирование описательных атрибутов единицы оборудования (название, модель,
+    характеристики и т.д.). Ответственное лицо, местонахождение и статус здесь
+    намеренно не редактируются — для них есть отдельные действия «Передать» и
+    «Изменить статус», которые фиксируют изменение в истории эксплуатации.
+    """
+    item = get_object_or_404(Equipment, pk=pk)
+    categories = EquipmentCategory.objects.all()
+
+    if request.method == "POST":
+        inventory_number = request.POST.get("inventory_number", "").strip()
+        name = request.POST.get("name", "").strip()
+
+        if not inventory_number or not name:
+            messages.error(request, "Инвентарный номер и наименование обязательны.")
+        else:
+            item.inventory_number = inventory_number
+            item.serial_number = request.POST.get("serial_number", "").strip()
+            item.name = name
+            item.model = request.POST.get("model", "").strip()
+            item.category_id = request.POST.get("category") or None
+            item.specifications = request.POST.get("specifications", "").strip()
+            item.purchase_date = request.POST.get("purchase_date") or None
+            item.purchase_cost = request.POST.get("purchase_cost") or None
+            item.notes = request.POST.get("notes", "").strip()
+            item.save()
+            messages.success(request, "Карточка оборудования обновлена.")
+            return redirect("equipment:detail", pk=item.pk)
+
+    return render(request, "equipment/equipment_edit.html", {
+        "item": item, "categories": categories,
+    })
+
+
 def equipment_create(request):
     """Добавление новой единицы оборудования (постановка на учёт)."""
     categories = EquipmentCategory.objects.all()
