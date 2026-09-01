@@ -34,6 +34,12 @@ else:
 fi
 
 echo "== Запускаю сервер =="
+# По умолчанию 1 воркер — этого достаточно для 1-5 пользователей и полностью
+# исключает конкурентную запись в SQLite между несколькими процессами
+# (основной источник редких "database is locked" / Internal Server Error).
+# Если пользователей станет больше и захочется больше воркеров — задайте
+# переменную окружения GUNICORN_WORKERS в docker-compose.yml (WAL-режим и
+# увеличенный busy_timeout в settings.py всё равно сильно снижают риск блокировки).
 exec gunicorn equipment_system.wsgi:application \
     --bind 0.0.0.0:8000 \
-    --workers "${GUNICORN_WORKERS:-2}"
+    --workers "${GUNICORN_WORKERS:-1}"

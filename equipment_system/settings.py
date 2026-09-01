@@ -104,8 +104,32 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': DATA_DIR / 'db.sqlite3',
+        # timeout — сколько секунд ждать снятия блокировки перед тем, как
+        # выдать ошибку "database is locked", вместо падения сразу.
+        'OPTIONS': {
+            'timeout': 20,
+        },
     }
 }
+
+# SQLite по умолчанию плохо переносит одновременную запись из нескольких
+# gunicorn-воркеров (может кратковременно выдавать "database is locked" —
+# именно это выглядит как редкий Internal Server Error, который пропадает
+# при повторной попытке). WAL-режим позволяет читать базу, пока идёт запись,
+# и сильно снижает частоту такой блокировки — включаем его на каждом
+# новом соединении с БД.
+from django.db.backends.signals import connection_created
+
+
+def _configure_sqlite(sender, connection, **kwargs):
+    if connection.vendor == "sqlite":
+        with connection.cursor() as cursor:
+            cursor.execute("PRAGMA journal_mode=WAL;")
+            cursor.execute("PRAGMA synchronous=NORMAL;")
+            cursor.execute("PRAGMA busy_timeout=20000;")
+
+
+connection_created.connect(_configure_sqlite)
 
 
 # Password validation
