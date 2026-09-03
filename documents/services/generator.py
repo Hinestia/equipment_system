@@ -19,6 +19,7 @@ ACT_TEMPLATES = {
     "act_move": "movement_act.docx",
     "act_return": "return_act.docx",
     "act_write_off": "write_off_act.docx",
+    "act_assembly": "assembly_act.docx",
 }
 STATEMENT_TEMPLATE = "statement.docx"
 CARD_TEMPLATE = "equipment_card.docx"

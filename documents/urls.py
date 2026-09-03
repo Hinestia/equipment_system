@@ -14,4 +14,6 @@ urlpatterns = [
     path("list/department/<int:department_pk>/create/", views.create_list_by_department, name="create_list_department"),
     path("card/<int:equipment_pk>/create/", views.create_card, name="create_card"),
     path("label/<int:equipment_pk>/create/", views.create_label, name="create_label"),
+    path("labels/sheet/", views.create_label_sheet, name="create_label_sheet"),
+    path("workstation-act/<int:workstation_pk>/create/", views.create_workstation_assembly_act, name="create_workstation_act"),
 ]

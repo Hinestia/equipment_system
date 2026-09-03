@@ -12,6 +12,7 @@ class MovementEventType(models.TextChoices):
     WRITE_OFF = "write_off", "Списание"
     RECEIPT = "receipt", "Поступление (первичная постановка на учёт)"
     RETURN = "return", "Возврат оборудования (сдан обратно)"
+    ASSEMBLY = "assembly", "Включение в сборку (акт сборки)"
 
 
 class MovementHistory(models.Model):
