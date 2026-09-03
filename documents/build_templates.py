@@ -218,6 +218,10 @@ def main():
         "write_off_act.docx", "АКТ списания оборудования",
         show_transfer_block=False, show_reason=True, reason_label="Причина списания",
     )
+    build_act_template(
+        "assembly_act.docx", "АКТ формирования сборки (рабочего места / ПК)",
+        show_transfer_block=False, show_reason=True, reason_label="Сборка (рабочее место / ПК)",
+    )
     build_statement_template("statement.docx")
     build_equipment_card_template("equipment_card.docx")
 
