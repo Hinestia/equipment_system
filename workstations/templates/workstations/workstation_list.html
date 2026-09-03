@@ -10,6 +10,30 @@
 </div>
 {% endblock %}
 {% block content %}
+<form method="get" class="row g-2 mb-3 align-items-end">
+    <div class="col-md-4">
+        <label class="form-label"><i class="ph ph-magnifying-glass"></i> Поиск</label>
+        <input type="text" name="q" value="{{ query }}" class="form-control form-control-sm" placeholder="Название сборки, ответственный, оборудование...">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Подразделение</label>
+        <select name="department" class="form-select form-select-sm">
+            <option value="">Все</option>
+            {% for d in departments %}
+                <option value="{{ d.id }}" {% if selected_department|stringformat:"s" == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary btn-sm w-100">Найти</button>
+    </div>
+    {% if query or selected_department %}
+    <div class="col-md-1">
+        <a href="{% url 'workstations:list' %}" class="btn btn-outline-secondary btn-sm w-100">Сброс</a>
+    </div>
+    {% endif %}
+</form>
+
 <div class="row g-3">
     {% for row in rows %}
     <div class="col-md-4">
@@ -17,7 +41,7 @@
             <div class="card h-100">
                 <div class="card-body">
                     <div style="font-size:13px;color:var(--text-primary);display:flex;align-items:center;gap:6px;"><i class="ph ph-tree-structure" style="color:var(--accent);"></i>{{ row.workstation.name }}</div>
-                    <p class="text-muted mb-1 mt-1" style="font-size:10.5px;">{{ row.workstation.location|default:"Местонахождение не указано" }}</p>
+                    <p class="text-muted mb-1 mt-1" style="font-size:10.5px;">{{ row.workstation.location|default:"Местонахождение не указано" }}{% if row.workstation.location.department %} · {{ row.workstation.location.department }}{% endif %}</p>
                     <p class="text-muted mb-2" style="font-size:10.5px;">{{ row.workstation.responsible_employee|default:"Ответственный не указан" }}</p>
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="badge bg-secondary">{{ row.count }} компонент{{ row.count|pluralize:",а,ов" }}</span>
@@ -31,12 +55,19 @@
     <div class="col-12">
         <div class="card card-body text-center text-muted py-5">
             <i class="ph ph-tree-structure" style="font-size:24px;"></i>
+            {% if query or selected_department %}
+            <p class="mt-2 mb-0">По заданному фильтру ничего не найдено.</p>
+            <div class="mt-3">
+                <a href="{% url 'workstations:list' %}" class="btn btn-outline-secondary btn-sm">Сбросить фильтр</a>
+            </div>
+            {% else %}
             <p class="mt-2 mb-0">Сборок пока нет. Сборка — это способ объединить несколько единиц
             оборудования (системный блок, монитор, клавиатуру и т.д.) в одно
             рабочее место или ПК, чтобы управлять ими как единым целым.</p>
             <div class="mt-3">
                 <a href="{% url 'workstations:create' %}" class="btn btn-primary btn-sm"><i class="ph ph-plus"></i> Создать первую сборку</a>
             </div>
+            {% endif %}
         </div>
     </div>
     {% endfor %}

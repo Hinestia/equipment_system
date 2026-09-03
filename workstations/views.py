@@ -1,15 +1,33 @@
 from django.contrib import messages
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import Workstation
-from employees.models import Employee, Location
+from employees.models import Department, Employee, Location
 from equipment.models import Equipment
 
 
 def workstation_list(request):
-    """Список всех сборок с количеством компонентов и суммарной стоимостью."""
-    workstations = Workstation.objects.select_related("location", "responsible_employee").all()
+    """Список всех сборок с количеством компонентов и суммарной стоимостью.
+    Поддерживает поиск по названию сборки (в т.ч. по её оборудованию/ответственному)
+    и фильтр по подразделению (через местонахождение сборки)."""
+    workstations = Workstation.objects.select_related(
+        "location", "location__department", "responsible_employee"
+    ).all()
+
+    query = request.GET.get("q", "").strip()
+    if query:
+        workstations = workstations.filter(
+            Q(name__icontains=query)
+            | Q(responsible_employee__full_name__icontains=query)
+            | Q(equipment_items__inventory_number__icontains=query)
+            | Q(equipment_items__name__icontains=query)
+        ).distinct()
+
+    department_id = request.GET.get("department")
+    if department_id:
+        workstations = workstations.filter(location__department_id=department_id)
+
     rows = []
     for ws in workstations:
         items = ws.equipment_items.all()
@@ -18,7 +36,14 @@ def workstation_list(request):
             "count": items.count(),
             "total_cost": items.aggregate(total=Sum("purchase_cost"))["total"] or 0,
         })
-    return render(request, "workstations/workstation_list.html", {"rows": rows})
+
+    context = {
+        "rows": rows,
+        "departments": Department.objects.all(),
+        "query": query,
+        "selected_department": department_id or "",
+    }
+    return render(request, "workstations/workstation_list.html", context)
 
 
 def workstation_detail(request, pk):
