@@ -198,7 +198,10 @@ EnvironmentFile=/opt/equipment_system/.env
 ExecStart=/opt/equipment_system/venv/bin/gunicorn \
     equipment_system.wsgi:application \
     --bind 127.0.0.1:8000 \
-    --workers 2
+    --workers 1 \
+    --worker-class gthread \
+    --threads 4 \
+    --timeout 120
 Restart=always
 
 [Install]
@@ -208,6 +211,16 @@ WantedBy=multi-user.target
 Замените `www-data` на пользователя, под которым должно работать
 приложение (главное — у него должны быть права на запись в папку проекта,
 так как туда пишутся `db.sqlite3` и `media/`).
+
+> Почему `--workers 1 --worker-class gthread --threads 4`, а не просто
+> несколько `--workers`: база данных — файл SQLite, и несколько отдельных
+> процессов, пишущих в неё одновременно, иногда приводят к ошибке
+> "database is locked". Один процесс с несколькими потоками даёт
+> параллельную обработку запросов без этого риска. `--timeout 120`
+> (вместо стандартных 30 секунд) не даёт gunicorn принудительно
+> обрывать соединение, если передача файла клиенту по медленной сети
+> занимает больше времени, чем обычно, — раньше это проявлялось как
+> "Загрузка прервана" при скачивании документов.
 
 ```bash
 sudo systemctl daemon-reload
