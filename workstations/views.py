@@ -85,6 +85,50 @@ def workstation_create(request):
     })
 
 
+def workstation_edit(request, pk):
+    """
+    Редактирование названия, местонахождения, ответственного лица и примечаний
+    сборки. Состав оборудования здесь не меняется — для этого есть отдельные
+    действия «Добавить»/«Убрать» на странице сборки.
+    """
+    workstation = get_object_or_404(Workstation, pk=pk)
+    locations = Location.objects.all()
+    employees = Employee.objects.filter(is_active=True)
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        if not name:
+            messages.error(request, "Укажите название сборки.")
+        else:
+            workstation.name = name
+            workstation.location_id = request.POST.get("location") or None
+            workstation.responsible_employee_id = request.POST.get("responsible_employee") or None
+            workstation.notes = request.POST.get("notes", "").strip()
+            workstation.save()
+
+            # Синхронизируем местонахождение/ответственного с уже добавленным
+            # оборудованием, чтобы реестр не расходился со сборкой — так же,
+            # как это делается при добавлении нового компонента.
+            if workstation.location_id or workstation.responsible_employee_id:
+                for eq in workstation.equipment_items.all():
+                    changed_fields = []
+                    if workstation.location_id and eq.current_location_id != workstation.location_id:
+                        eq.current_location_id = workstation.location_id
+                        changed_fields.append("current_location")
+                    if workstation.responsible_employee_id and eq.responsible_employee_id != workstation.responsible_employee_id:
+                        eq.responsible_employee_id = workstation.responsible_employee_id
+                        changed_fields.append("responsible_employee")
+                    if changed_fields:
+                        eq.save(update_fields=changed_fields + ["updated_at"])
+
+            messages.success(request, f"Сборка «{workstation.name}» обновлена.")
+            return redirect("workstations:detail", pk=workstation.pk)
+
+    return render(request, "workstations/workstation_edit.html", {
+        "workstation": workstation, "locations": locations, "employees": employees,
+    })
+
+
 def workstation_add_component(request, pk):
     """Добавить одну или несколько единиц оборудования в сборку."""
     workstation = get_object_or_404(Workstation, pk=pk)

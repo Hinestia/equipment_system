@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Редактировать: {{ workstation.name }}{% endblock %}
+{% block page_eyebrow %}
+<div style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+    <a href="{% url 'workstations:detail' workstation.pk %}"><i class="ph ph-arrow-left"></i> К сборке</a>
+</div>
+<div class="display-title mt-1" style="font-size:24px;">Редактировать сборку</div>
+{% endblock %}
+{% block content %}
+
+<form method="post" class="card card-body" style="max-width: 600px;">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label class="form-label">Название *</label>
+        <input type="text" name="name" class="form-control" value="{{ workstation.name }}" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Местонахождение</label>
+        <select name="location" class="form-select">
+            <option value="">— не указано —</option>
+            {% for l in locations %}
+                <option value="{{ l.id }}" {% if workstation.location_id == l.id %}selected{% endif %}>{{ l.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Ответственное лицо</label>
+        <select name="responsible_employee" class="form-select">
+            <option value="">— не указано —</option>
+            {% for e in employees %}
+                <option value="{{ e.id }}" {% if workstation.responsible_employee_id == e.id %}selected{% endif %}>{{ e.full_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Примечания</label>
+        <textarea name="notes" class="form-control" rows="3">{{ workstation.notes }}</textarea>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><i class="ph ph-check"></i> Сохранить</button>
+        <a href="{% url 'workstations:detail' workstation.pk %}" class="btn btn-outline-secondary">Отмена</a>
+    </div>
+</form>
+<p class="text-muted mt-2" style="font-size:10px;max-width:600px;">
+    Если укажете местонахождение или ответственного — они применятся ко всему
+    оборудованию, уже входящему в сборку, чтобы реестр не расходился со сборкой.
+</p>
+{% endblock %}
