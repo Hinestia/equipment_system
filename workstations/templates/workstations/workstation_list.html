@@ -3,10 +3,7 @@
 {% block page_eyebrow %}
 <div class="d-flex align-items-baseline justify-content-between flex-wrap gap-2">
     <span class="display-title" style="font-size:26px;">Сборки (рабочие места / ПК)</span>
-    <div class="d-flex gap-2">
-        <a href="{% url 'reports:export_workstations_excel' %}" class="btn btn-outline-secondary btn-sm"><i class="ph ph-file-xls"></i> Экспорт в Excel</a>
-        <a href="{% url 'workstations:create' %}" class="btn btn-primary btn-sm"><i class="ph ph-plus"></i> Новая сборка</a>
-    </div>
+    <a href="{% url 'workstations:create' %}" class="btn btn-primary btn-sm"><i class="ph ph-plus"></i> Новая сборка</a>
 </div>
 {% endblock %}
 {% block content %}

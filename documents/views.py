@@ -8,7 +8,6 @@ from .services import generator, label_generator
 from employees.models import Department, Employee, Location
 from equipment.models import Equipment, EquipmentStatus
 from history.models import MovementEventType, MovementHistory
-from workstations.models import Workstation
 
 # Соответствие кода акта -> тип события в истории, фиксируемый при формировании акта.
 ACT_EVENT_TYPES = {
@@ -260,62 +259,3 @@ def create_label(request, equipment_pk):
     buffer = label_generator.generate_equipment_label(equipment)
     filename = f"birka_{equipment.inventory_number}.pdf"
     return FileResponse(buffer, as_attachment=True, filename=filename, content_type="application/pdf")
-
-
-def create_label_sheet(request):
-    """
-    Лист А4 с несколькими бирками сразу (сетка 2x5, с переходом на следующую
-    страницу, если выбрано больше 10 единиц) — чтобы не скачивать и не печатать
-    бирки по одной. Список единиц оборудования передаётся POST-ом с формы
-    (чекбоксы на странице реестра) или GET-параметрами ?equipment=1&equipment=2...
-    """
-    if request.method == "POST":
-        equipment_ids = request.POST.getlist("equipment")
-    else:
-        equipment_ids = request.GET.getlist("equipment")
-
-    if not equipment_ids:
-        messages.warning(request, "Не выбрано ни одной единицы оборудования для печати бирок.")
-        return redirect("equipment:list")
-
-    equipment_qs = Equipment.objects.filter(pk__in=equipment_ids).select_related("responsible_employee")
-    buffer = label_generator.generate_label_sheet(equipment_qs)
-    return FileResponse(buffer, as_attachment=True, filename="birki_list_a4.pdf", content_type="application/pdf")
-
-
-def create_workstation_assembly_act(request, workstation_pk):
-    """
-    Акт формирования сборки — документирует текущий состав сборки (рабочего
-    места/ПК) на момент формирования: какие единицы оборудования в неё входят,
-    где она расположена и кто за неё отвечает. Можно формировать повторно в
-    любой момент — акт всегда отражает состав сборки на текущий момент.
-    """
-    workstation = get_object_or_404(Workstation, pk=workstation_pk)
-    doc_type = get_object_or_404(DocumentType, code="act_assembly")
-    components = list(workstation.equipment_items.all())
-
-    if not components:
-        messages.warning(request, "В сборке нет оборудования — акт формировать не из чего.")
-        return redirect("workstations:detail", pk=workstation.pk)
-
-    location_str = str(workstation.location) if workstation.location else "—"
-    employee_str = str(workstation.responsible_employee) if workstation.responsible_employee else "—"
-
-    document = Document.objects.create(
-        document_type=doc_type,
-        reason=workstation.name,
-        comment=f"Местонахождение: {location_str} · Ответственный: {employee_str}",
-    )
-    document.number = _next_number(doc_type, document.pk)
-    document.save(update_fields=["number"])
-
-    for eq in components:
-        DocumentEquipment.objects.create(document=document, equipment=eq)
-        MovementHistory.objects.create(
-            equipment=eq, event_type=MovementEventType.ASSEMBLY, document=document,
-            comment=f"Включено в сборку «{workstation.name}» (акт {document.number})",
-        )
-
-    generator.generate_document_file(document)
-    messages.success(request, f"Акт формирования сборки №{document.number} сформирован.")
-    return redirect("documents:detail", pk=document.pk)

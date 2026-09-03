@@ -199,7 +199,9 @@ def export_equipment_excel(request):
             item.notes,
         ])
 
-    _autosize_columns(ws)
+    for column_cells in ws.columns:
+        length = max((len(str(cell.value)) for cell in column_cells if cell.value), default=10)
+        ws.column_dimensions[column_cells[0].column_letter].width = min(length + 2, 40)
 
     buffer = io.BytesIO()
     wb.save(buffer)
@@ -210,68 +212,4 @@ def export_equipment_excel(request):
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
     response["Content-Disposition"] = 'attachment; filename="reestr_oborudovaniya.xlsx"'
-    return response
-
-
-def _autosize_columns(ws):
-    for column_cells in ws.columns:
-        length = max((len(str(cell.value)) for cell in column_cells if cell.value), default=10)
-        ws.column_dimensions[column_cells[0].column_letter].width = min(length + 2, 40)
-
-
-def export_workstations_excel(request):
-    """
-    Экспорт сборок (рабочих мест / ПК) в Excel: один лист-сводка (сборка,
-    местонахождение, ответственный, кол-во компонентов, суммарная стоимость)
-    и один лист с полным составом каждой сборки по единицам оборудования.
-    """
-    workstations = Workstation.objects.select_related("location", "responsible_employee").all()
-
-    wb = Workbook()
-    ws_summary = wb.active
-    ws_summary.title = "Сборки"
-    ws_summary.append(["Название", "Местонахождение", "Ответственный", "Компонентов", "Стоимость", "Примечания"])
-    for cell in ws_summary[1]:
-        cell.font = Font(bold=True)
-
-    ws_detail = wb.create_sheet("Состав сборок")
-    ws_detail.append(["Сборка", "Инв. номер", "Наименование", "Модель", "Категория", "Статус"])
-    for cell in ws_detail[1]:
-        cell.font = Font(bold=True)
-
-    for ws_obj in workstations:
-        items = ws_obj.equipment_items.select_related("category", "status").all()
-        total_cost = items.aggregate(total=Sum("purchase_cost"))["total"] or 0
-
-        ws_summary.append([
-            ws_obj.name,
-            str(ws_obj.location) if ws_obj.location else "",
-            str(ws_obj.responsible_employee) if ws_obj.responsible_employee else "",
-            items.count(),
-            float(total_cost),
-            ws_obj.notes,
-        ])
-
-        for item in items:
-            ws_detail.append([
-                ws_obj.name,
-                item.inventory_number,
-                item.name,
-                item.model,
-                str(item.category) if item.category else "",
-                str(item.status) if item.status else "",
-            ])
-
-    _autosize_columns(ws_summary)
-    _autosize_columns(ws_detail)
-
-    buffer = io.BytesIO()
-    wb.save(buffer)
-    buffer.seek(0)
-
-    response = HttpResponse(
-        buffer.read(),
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    )
-    response["Content-Disposition"] = 'attachment; filename="sborki.xlsx"'
     return response
