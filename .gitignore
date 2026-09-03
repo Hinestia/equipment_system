@@ -8,3 +8,11 @@ __pycache__/
 .npm-global/
 .npmrc
 .wget-hsts
+
+# Данные — никогда не должны попадать под git pull/push, чтобы случайно
+# не перезаписать реальную рабочую базу и файлы демо-версией из репозитория.
+db.sqlite3
+data/
+media/
+backups/
+staticfiles/

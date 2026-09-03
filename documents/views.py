@@ -1,3 +1,5 @@
+import os
+
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import FileResponse
@@ -48,6 +50,30 @@ def document_detail(request, pk):
     document = get_object_or_404(Document.objects.select_related("document_type"), pk=pk)
     items = document.items.select_related("equipment").all()
     return render(request, "documents/document_detail.html", {"document": document, "items": items})
+
+
+def download_document(request, pk):
+    """
+    Отдаёт сгенерированный .docx на скачивание через FileResponse с явным
+    заголовком Content-Disposition: attachment — в отличие от прямой ссылки
+    на файл в /media/ (которая отдаёт файл без этого заголовка), это надёжно
+    работает во всех браузерах. Прямая ссылка на /media/ иногда приводила к
+    ошибке "Загрузка прервана" в некоторых браузерах (Yandex, Chrome) именно
+    из-за отсутствия этого заголовка — они пытаются сами решить, что делать
+    с файлом, и для .docx это иногда заканчивается обрывом.
+    """
+    document = get_object_or_404(Document, pk=pk)
+    if not document.generated_file:
+        messages.error(request, "У этого документа нет сгенерированного файла.")
+        return redirect("documents:detail", pk=document.pk)
+
+    filename = os.path.basename(document.generated_file.name)
+    return FileResponse(
+        document.generated_file.open("rb"),
+        as_attachment=True,
+        filename=filename,
+        content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
 
 
 def act_menu(request):
